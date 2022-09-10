@@ -26,6 +26,7 @@ lgb_train = lgb.Dataset(train_x, train_y)
 lgb_eval = lgb.Dataset(test_x, test_y, reference=lgb_train)
 
 params = {
+    'max_depth': 32,
     'task': 'train',
     'boosting_type': 'gbdt',
     'objective': 'binary',
@@ -39,7 +40,7 @@ params = {
     'is_unbalance': True
 }
 
-gbm = lgb.train(params, lgb_train, num_boost_round=1000, valid_sets=lgb_eval, early_stopping_rounds=100)
+gbm = lgb.train(params, lgb_train, num_boost_round=1000, valid_sets=lgb_eval, early_stopping_rounds=500)
 # gbm = lgb.train(params, lgb_train, num_boost_round=1000, early_stopping_rounds=100)
 
 # pickle.dump(model, open("xgb.pickle.dat", "wb"))
