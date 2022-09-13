@@ -28,23 +28,14 @@ def character():
     print(df.dtypes.value_counts())
 
     # 查找类型为非数值型标签
-    nonnumb = df.select_dtypes('object').apply(pd.Series.nunique, axis=0)
+    # nonnumb = df.select_dtypes('object').apply(pd.Series.nunique, axis=0)
 
-    # 转换为数值型
-    le = LabelEncoder()
-    le_count = 0
-    for col in df:
-        if df[col].dtype == 'object':
-            if len(list(df[col].unique())) <= 2:
-                le.fit(df[col])
-                df[col] = le.transform(df[col])
-                le_count += 1
-    # print('%d columns were label encoded.' % le_count)
+    # 使用one hot encode 转换为数值型
     df = pd.get_dummies(df)
-    print('Training Features shape: ', df.shape)
+    # print(df.dtypes.value_counts())
 
     # 缺失值处理
-    print(df.isnull().sum().sort_values())
+    # print(df.isnull().sum().sort_values())
 
     # df['NAME_TYPE_SUITE'].fillna(df.NAME_TYPE_SUITE.mode()[0], inplace=True)
     for col in df:
@@ -52,8 +43,9 @@ def character():
             df[col].fillna("NAN", inplace=True)  # 后期可以考虑使用众数填充
         else:
             df[col].fillna(0, inplace=True)
-    print(df.isnull().sum().sort_values())
-    return df
+    # print(df.isnull().sum().sort_values())
+    df.to_csv("C:Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv", index=False)
+
 
 def lightgbm(df):
     y = df["TARGET"]
@@ -80,7 +72,7 @@ def lightgbm(df):
     gbm = lgb.train(params, lgb_train, num_boost_round=1736, valid_sets=lgb_eval)
     # gbm = lgb.train(params, lgb_train, num_boost_round=1000, early_stopping_rounds=100)
 
-    Y_pred = gbm.predict(x_test)
+    y_pred = gbm.predict(x_test)
 
     """print("准确度为：")
     print(accuracy_score(test_y, Y_pred, normalize=True, sample_weight=None))
@@ -89,7 +81,7 @@ def lightgbm(df):
     print("召回率为:")
     print(recall_score(test_y, Y_pred, average="binary"))"""
 
-    fpr1, tpr1, thresholds1 = roc_curve(y_test, Y_pred, pos_label=1)  # pos_label=1
+    fpr1, tpr1, thresholds1 = roc_curve(y_test, y_pred, pos_label=1)  # pos_label=1
     print("AUC为:")
     print(auc(fpr1, tpr1))
 
@@ -101,14 +93,7 @@ def lightgbm(df):
     plt.show()
 
 
-
 # 运行完查看是否有标签
 if __name__ == '__main__':
-    time_start = time.time()
-    df = character()
-    # lightgbm(df)
-    time_end = time.time()
-    time_sum = time_end - time_start
-    print("运行时间:")
-    print(time_sum)
+    character()
 
