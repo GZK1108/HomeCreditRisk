@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 # import joblib
 
 time_start = time.time()
-df = pd.read_csv('C:Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv', header=1)
+df = pd.read_csv('C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv', header=1)
 
 y = df.iloc[:, 0]
 x = df.iloc[:, 1:]
@@ -18,6 +18,8 @@ lgb_train = lgb.Dataset(x_train, y_train)
 lgb_eval = lgb.Dataset(x_test, y_test, reference=lgb_train)
 params = {
     'boosting_type': 'goss',  # gbdt使用树，goss使用单边梯度抽样算法，使用随机森林
+    'metric': {'12', 'auc', 'binary_logloss'},
+    'use_missing': True,
     'learning_rate': 0.005134,
     'num_leaves': 54,
     'max_depth': 10,
