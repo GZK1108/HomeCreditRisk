@@ -46,15 +46,34 @@ params = {
     'verbose': -1
 }
 
-gbm = lgb.train(params, lgb_train, num_boost_round=2000, valid_sets=lgb_eval, early_stopping_rounds=1500)
+gbm = lgb.train(params, lgb_train, num_boost_round=200, valid_sets=lgb_eval, early_stopping_rounds=1500)
 # gbm = lgb.train(params, lgb_train, num_boost_round=1000, early_stopping_rounds=100)
-#  重命名
-# gbm.set_feature_name(labels)  # train为我的训练数据
 
-plot_importance(gbm, max_num_features=10)
-plt.show()
+# 输出特征重要性
 
+# plot_importance(gbm, max_num_features=20, importance_type='gain')
+# plt.show()
+
+
+# 保存重要特征
+importance = gbm.feature_importance(importance_type='gain')
+feature_name = gbm.feature_name()
+
+feature_importance = pd.DataFrame({
+    'feature_name': feature_name, 'importance': importance})
+# feature_importance.to_csv('feature_importance.csv', index=False)
+
+"""for key, values in feature_importance.items():
+    if values == '0.00':
+        df = df.drop([key], axis=1)
+
+print(df)"""
+
+
+
+"""# 检验
 y_pred = gbm.predict(x_test)
+
 
 fpr1, tpr1, thresholds1 = roc_curve(y_test, y_pred, pos_label=1)  # pos_label=1
 print("AUC为:")
@@ -70,6 +89,6 @@ plt.show()
 time_end = time.time()
 time_sum = time_end - time_start
 print("运行时间:")
-print(time_sum)
+print(time_sum)"""
 
 # joblib.dump(model, "xgboostpredict.j1")
