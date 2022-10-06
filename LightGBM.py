@@ -1,5 +1,6 @@
 import pandas as pd
 import warnings
+import seaborn as sns
 from lightgbm import plot_importance
 from matplotlib import pyplot as plt
 import lightgbm as lgb
@@ -15,8 +16,8 @@ warnings.filterwarnings("ignore")
 
 def character():
     df = pd.read_csv("C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/application_train.csv")
-    # 删除ID列
-    df = df.drop(['SK_ID_CURR'], axis=1)
+    # 删除ID列与FLAG_MOBIL列
+    df = df.drop(['SK_ID_CURR', 'FLAG_MOBIL'], axis=1)
     # 计算数据缺失比例，并将结果保存到csv中
     value_cave = ((df.isnull().sum()) / df.shape[0]).sort_values(ascending=False).map(lambda x: "{:.2%}".format(x))
     # value_cave.to_csv('ValueNum.csv')
@@ -36,17 +37,14 @@ def character():
     # 使用LabelEncoder 转换为数值型
     class_le = LabelEncoder()
 
-    # 缺失值处理
-    # print(df.isnull().sum().sort_values())
-
-    # df['NAME_TYPE_SUITE'].fillna(df.NAME_TYPE_SUITE.mode()[0], inplace=True)
+    # 缺失值处理+编码
     for col in df:
         if df[col].dtype == 'object':
-            df[col].fillna(df[col].mode()[0], inplace=True)  # 后期可以考虑使用众数填充
+            df[col].fillna(df[col].mode()[0], inplace=True)  # 使用众数填充标称型
             df[[col]] = df[[col]].apply(LabelEncoder().fit_transform)
         else:
             # df[col].fillna(round(df[col].mean()), inplace=True)
-            df[col].fillna(df[col].median(), inplace=True)
+            df[col].fillna(df[col].median(), inplace=True)  # 使用中位数填充数值型
     # print(df.isnull().sum().sort_values())
 
     # 对原有数据集特征进行运算，得到新特征
@@ -54,7 +52,30 @@ def character():
     df['prices_income_ratio'] = df.apply(lambda x: x['AMT_GOODS_PRICE'] / x['AMT_INCOME_TOTAL'], axis=1)
     df['employed_age_ratio'] = df.apply(lambda x: x['DAYS_EMPLOYED'] / x['DAYS_BIRTH'], axis=1)
     df['credit_goods_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_GOODS_PRICE'], axis=1)
-    df['credit_downpayment'] = df.apply(lambda x: x['AMT_GOODS_PRICE'] - x['AMT_CREDIT'], axis=1)
+
+    # 相关系数计算
+    all_correlations = df.corr(method='pearson')
+    # 绘制热力图
+    """plt.figure(figsize=(16, 12), dpi=80)
+    sns.heatmap(data=correlations, annot=False, center=0)
+    plt.show()"""
+
+    # 查找标签与TARGET相关性
+    target_orrelations = (abs(all_correlations['TARGET']).sort_values(ascending=True))
+    # print(target_orrelations)
+
+    """
+        # 按相关系数删除标签
+        for i in target_orrelations.items():
+        if i[1] <= 0.005:  # 删除与TARGET相关性低于0.005的标签
+            df.drop([i[0]], axis=1, inplace=True)"""
+    # 按个数删除标签
+    count = 0
+    for i in target_orrelations.items():
+        count = count + 1
+        if count < 0:  # 删除与TARGET相关性低的30个标签10
+            df.drop(i[0], axis=1, inplace=True)
+
     # df.to_csv('C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv', index=False)
     return df
 
@@ -71,19 +92,18 @@ def lightgbm(df):
     params = {
         'boosting_type': 'goss',  # gbdt使用树，goss使用单边梯度抽样算法，使用随机森林
         'metric': 'auc',
-        'use_missing': True,
-        'learning_rate': 0.005134,
+        'learning_rate': 0.005,
         'num_leaves': 54,
         'max_depth': 10,
         'subsample_for_bin': 240000,
-        'reg_alpha': 0.436193,
-        'reg_lambda': 0.479169,
-        'colsample_bytree': 0.508716,
+        'reg_alpha': 0.44,
+        'reg_lambda': 0.48,
+        'colsample_bytree': 0.48888,
         'min_split_gain': 0.024766,
         'subsample': 1,
-        'is_unbalance': True,
-        'silent': -1,
-        'verbose': -1
+        'is_unbalance': False,
+        'silent':-1,
+        'verbose':-1
     }
 
     gbm = lgb.train(params, lgb_train, num_boost_round=3000, valid_sets=lgb_eval, early_stopping_rounds=2800)
@@ -100,7 +120,7 @@ def lightgbm(df):
 
     feature_importance = pd.DataFrame({
         'feature_name': feature_name, 'importance': importance})
-    feature_importance.sort_values(by=['importance'], ascending=1, inplace=True)
+    feature_importance.sort_values(by=['importance'], ascending=False, inplace=True)
     # print(feature_importance)
     # feature_importance.to_csv('feature_importance.csv', index=False)
 
@@ -116,22 +136,19 @@ def lightgbm(df):
     lgb_eval = lgb.Dataset(x_test, y_test, reference=lgb_train)
     gbm2 = lgb.train(params, lgb_train, num_boost_round=2000, valid_sets=lgb_eval, early_stopping_rounds=1500)"""
 
-    """# 检验
+    # 检验
     y_pred = gbm.predict(x_test)
-
-
     fpr1, tpr1, thresholds1 = roc_curve(y_test, y_pred, pos_label=1)  # pos_label=1
-    print("AUC为:")
-    print(auc(fpr1, tpr1))
+    print("AUC为:", auc(fpr1, tpr1))
 
     plt.title("lightgbm")
     plt.plot(fpr1, tpr1, label='ROC')
     plt.xlabel('FPR')
     plt.ylabel('TPR')
+    # plt.show()
 
-    plt.show()
 
-    """
+
 
 
 
