@@ -38,7 +38,7 @@ def character():
             # df[col].fillna(round(df[col].mean()), inplace=True)
             df[col].fillna("NaN", inplace=True)
     # print(df.isnull().sum().sort_values())
-    df.to_csv('C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv', index=False)
+    # df.to_csv('C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv', index=False)
 
 
 
