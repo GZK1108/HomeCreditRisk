@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 
 time_start = time.time()
 df = pd.read_csv('C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv', header=0)
-
+df['credit_downpayment'] = df.apply(lambda x: x['AMT_GOODS_PRICE'] - x['AMT_CREDIT'], axis=1)
 y = df.iloc[:, 0]
 x = df.iloc[:, 1:]
 x_train, x_test, y_train, y_test = train_test_split(x, y, random_state=42, test_size=0.2)
