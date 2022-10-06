@@ -38,7 +38,7 @@ def character():
             df[[col]]=df[[col]].apply(LabelEncoder().fit_transform)
         else:
             # df[col].fillna(round(df[col].mean()), inplace=True)
-            df[col].fillna(round(df[col].mean()), inplace=True)
+            df[col].fillna(df[col].median(), inplace=True)
     # print(df.isnull().sum().sort_values())
 
     # 对原有数据集特征进行运算，得到新特征
