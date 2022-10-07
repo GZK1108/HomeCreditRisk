@@ -21,10 +21,12 @@ def character():
     # 计算数据缺失比例，并将结果保存到csv中
     value_cave = ((df.isnull().sum()) / df.shape[0]).sort_values(ascending=False).map(lambda x: "{:.2%}".format(x))
     # value_cave.to_csv('ValueNum.csv')
+    # df.info()  # 数据集信息
 
     # 删除数据缺失比例高于10%的特征
     for key, value in value_cave.items():
-        if value > '10%':  # 查找数据缺失比例高于10%的项
+        if value > '70%':  # 查找数据缺失比例高于70%的项，在该数据集里面没有
+            # print(key)
             # 删除指定列
             df = df.drop([key], axis=1)
 
@@ -44,7 +46,7 @@ def character():
             df[[col]] = df[[col]].apply(LabelEncoder().fit_transform)
         else:
             # df[col].fillna(round(df[col].mean()), inplace=True)
-            df[col].fillna(df[col].median(), inplace=True)  # 使用中位数填充数值型
+            df[col].fillna(0, inplace=True)  # 使用中位数填充数值型median
     # print(df.isnull().sum().sort_values())
 
     # 对原有数据集特征进行运算，得到新特征
@@ -146,10 +148,6 @@ def lightgbm(df):
     plt.xlabel('FPR')
     plt.ylabel('TPR')
     # plt.show()
-
-
-
-
 
 
 if __name__ == '__main__':
