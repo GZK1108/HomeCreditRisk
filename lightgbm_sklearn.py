@@ -5,6 +5,7 @@ import seaborn as sns
 from lightgbm import plot_importance
 from matplotlib import pyplot as plt
 import lightgbm as lgb
+from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score, roc_curve, recall_score, precision_score, auc
 import time
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -53,6 +54,14 @@ def character():
     df['employed_age_ratio'] = df.apply(lambda x: x['DAYS_EMPLOYED'] / x['DAYS_BIRTH'], axis=1)
     df['credit_goods_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_GOODS_PRICE'], axis=1)
 
+    section = df[['AMT_GOODS_PRICE', 'AMT_ANNUITY']]
+    k = 10  # 定义聚类的类别中心个数，即聚成4类
+    iteration = 500  # 计算聚类中心的最大循环次数
+    model = KMeans(n_clusters=k, max_iter=iteration)
+    model.fit(section)
+    clusion = model.predict(section)
+    df['clusion'] = clusion
+
     # 相关系数计算
     all_correlations = df.corr(method='pearson')
     # 绘制热力图
@@ -93,47 +102,35 @@ def lightgbm(df):
                              boosting_type='goss',
                              metric='auc',
                              max_depth=6,
-                             num_leaves=40,
-                             learning_rate=0.1,
+                             num_leaves=50,
+                             learning_rate=0.00545,
                              subsample_for_bin=240000,
-                             colsample_bytree=0.48888,
+                             colsample_bytree=0.488,
                              reg_alpha=0.44,
                              reg_lambda=0.48,
                              min_split_gain=0.024766,
                              subsample=1,
                              is_unbalance=False,
-                             num_iterations=500,
+                             n_estimators=5000,
                              )
 
-    parameters = {
-        'max_depth': range(3,16),
-        'num_leaves': range(40,100),
+    """parameters = {
+            'colsample_bytree': np.linspace(0.48,0.53,num = 50),
     }
 
-    gsearch = GridSearchCV(gbm, param_grid=parameters, scoring='roc_auc', cv=5, n_jobs = -1)
+    gsearch = GridSearchCV(gbm, param_grid=parameters, scoring='roc_auc', cv=3,n_jobs = -1)
     gsearch.fit(x_train, y_train)
     print('参数的最佳取值:{0}'.format(gsearch.best_params_))
     print('最佳模型得分:{0}'.format(gsearch.best_score_))
     print(gsearch.cv_results_['mean_test_score'])
-    print(gsearch.cv_results_['params'])
+    print(gsearch.cv_results_['params'])"""
 
     # 训练
-    """testlist = [(x_test, y_test)]
-    model = gbm.fit(x_train, y_train, eval_set=testlist, early_stopping_rounds=4500)"""
+    testlist = [(x_test, y_test)]
+    model = gbm.fit(x_train, y_train, eval_set=testlist, early_stopping_rounds=4500)
     # model = gbm.fit(x_train, y_train)
 
-
-    # 保存重要特征(需要根据skleran接口修改)
-    """importance = gbm.feature_importance(importance_type='gain')
-    feature_name = gbm.feature_name()
-
-    feature_importance = pd.DataFrame({
-        'feature_name': feature_name, 'importance': importance})
-    feature_importance.sort_values(by=['importance'], ascending=False, inplace=True)
-    # print(feature_importance)
-    # feature_importance.to_csv('feature_importance.csv', index=False)"""
-
-    """# 检验
+    # 检验
     y_pred = model.predict(x_test)
     preds = model.predict_proba(x_test)[:, 1]
     fpr1, tpr1, thresholds1 = roc_curve(y_test, preds, pos_label=1)  # pos_label=1
@@ -143,7 +140,7 @@ def lightgbm(df):
     plt.plot(fpr1, tpr1, label='ROC')
     plt.xlabel('FPR')
     plt.ylabel('TPR')
-    # plt.show()"""
+    # plt.show()
 
 
 if __name__ == '__main__':

@@ -10,6 +10,7 @@ import time
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
+from sklearn.cluster import KMeans
 import joblib
 
 warnings.filterwarnings("ignore")
@@ -47,6 +48,7 @@ def character():
         else:
             # df[col].fillna(round(df[col].mean()), inplace=True)
             df[col].fillna(0, inplace=True)  # 使用中位数填充数值型median
+
     # print(df.isnull().sum().sort_values())
 
     # 对原有数据集特征进行运算，得到新特征
@@ -79,6 +81,7 @@ def character():
             df.drop(i[0], axis=1, inplace=True)
 
     # df.to_csv('C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv', index=False)
+
     return df
 
 
@@ -96,7 +99,7 @@ def lightgbm(df):
         'metric': 'auc',
         'objective': 'binary',
         'learning_rate': 0.00545,
-        'num_leaves': 40,
+        'num_leaves': 50,
         'max_depth': 6,
         'subsample_for_bin': 240000,
         'reg_alpha': 0.44,
@@ -135,7 +138,7 @@ def lightgbm(df):
     # df.drop([feature_importance['feature_name'][i]], axis=1, inplace=True)
 
     # 检验
-    y_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration)
+    y_pred = gbm.predict(x_test)
     fpr1, tpr1, thresholds1 = roc_curve(y_test, y_pred, pos_label=1)  # pos_label=1
     print("AUC为:", auc(fpr1, tpr1))
 
