@@ -94,7 +94,7 @@ def lightgbm(df):
                              metric='auc',
                              max_depth=6,
                              num_leaves=40,
-                             learning_rate=0.00545,
+                             learning_rate=0.1,
                              subsample_for_bin=240000,
                              colsample_bytree=0.48888,
                              reg_alpha=0.44,
@@ -102,28 +102,28 @@ def lightgbm(df):
                              min_split_gain=0.024766,
                              subsample=1,
                              is_unbalance=False,
-                             num_iterations=5000,
+                             num_iterations=500,
                              )
 
-    """parameters = {
-        'max_depth': [4, 6, 8],
-        'num_leaves': [20, 30, 40],
+    parameters = {
+        'max_depth': range(3,16),
+        'num_leaves': range(40,100),
     }
 
-    gsearch = GridSearchCV(params, param_grid=parameters, scoring='roc_auc', cv=3)
+    gsearch = GridSearchCV(gbm, param_grid=parameters, scoring='roc_auc', cv=5, n_jobs = -1)
     gsearch.fit(x_train, y_train)
     print('参数的最佳取值:{0}'.format(gsearch.best_params_))
     print('最佳模型得分:{0}'.format(gsearch.best_score_))
     print(gsearch.cv_results_['mean_test_score'])
-    print(gsearch.cv_results_['params'])"""
+    print(gsearch.cv_results_['params'])
 
     # 训练
-    testlist = [(x_test,y_test)]
-    model = gbm.fit(x_train, y_train, eval_set=testlist, early_stopping_rounds=4500)
+    """testlist = [(x_test, y_test)]
+    model = gbm.fit(x_train, y_train, eval_set=testlist, early_stopping_rounds=4500)"""
     # model = gbm.fit(x_train, y_train)
 
 
-    # 保存重要特征
+    # 保存重要特征(需要根据skleran接口修改)
     """importance = gbm.feature_importance(importance_type='gain')
     feature_name = gbm.feature_name()
 
@@ -133,7 +133,7 @@ def lightgbm(df):
     # print(feature_importance)
     # feature_importance.to_csv('feature_importance.csv', index=False)"""
 
-    # 检验
+    """# 检验
     y_pred = model.predict(x_test)
     preds = model.predict_proba(x_test)[:, 1]
     fpr1, tpr1, thresholds1 = roc_curve(y_test, preds, pos_label=1)  # pos_label=1
@@ -143,7 +143,7 @@ def lightgbm(df):
     plt.plot(fpr1, tpr1, label='ROC')
     plt.xlabel('FPR')
     plt.ylabel('TPR')
-    # plt.show()
+    # plt.show()"""
 
 
 if __name__ == '__main__':
