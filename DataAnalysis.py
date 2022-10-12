@@ -15,7 +15,15 @@ for col in df:
         # df[col].fillna(round(df[col].mean()), inplace=True)
         df_str = df_str.drop(col, axis=1)
 
-for i in range(len(df_num.columns)-1):
+# 缺失值处理
+df_num.fillna(0, inplace=True)
+df_num['cerdit_annuity_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_ANNUITY'], axis=1)
+df_num['prices_income_ratio'] = df.apply(lambda x: x['AMT_GOODS_PRICE'] / x['AMT_INCOME_TOTAL'], axis=1)
+df_num['employed_age_ratio'] = df.apply(lambda x: x['DAYS_EMPLOYED'] / x['DAYS_BIRTH'], axis=1)
+df_num['credit_goods_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_GOODS_PRICE'], axis=1)
+
+
+"""for i in range(len(df_num.columns)-1):
     i = i+1
     plt.figure(figsize=(16, 8), dpi=100)
     # x = range(1, len(df_num)+1)
@@ -29,4 +37,14 @@ for i in range(len(df_num.columns)-1):
     plt.xlabel('NUMBER')
     plt.ylabel(df_num.columns[i])
     plt.savefig(f'C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/pictureTARGET/{df_num.columns[i]}', dpi=100)
-    plt.show()
+    plt.show()"""
+
+# 单独绘图
+# plt.figure(figsize=(16, 8), dpi=100)
+x = range(1, len(df_num)+1)
+y = df_num['cerdit_annuity_ratio']
+# plt.scatter(x=x, y=y, marker='.', s=5)
+y.hist(figsize=(12,10), bins=20)
+plt.ylabel('NUMBER')
+plt.xlabel('cerdit_annuity_ratio')
+plt.show()

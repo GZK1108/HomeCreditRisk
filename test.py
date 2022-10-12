@@ -10,7 +10,7 @@ import time
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, DBSCAN
 
 df = pd.read_csv("C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/application_train.csv")
 # 删除ID列与FLAG_MOBIL列
@@ -28,9 +28,9 @@ for col in df:
 section=df[['AMT_GOODS_PRICE','AMT_ANNUITY']]
 k = 10 # 定义聚类的类别中心个数，即聚成4类
 iteration = 500 # 计算聚类中心的最大循环次数
-model = KMeans(n_clusters=k, max_iter=iteration)
+model = DBSCAN(eps=0.5, min_samples=5, metric_params=None, leaf_size=30, n_jobs=-1)
 model.fit(section)
-text = model.predict(section)
+text = model.fit_predict(section)
 df['test'] = text
 
 print(df)

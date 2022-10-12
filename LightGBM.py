@@ -10,7 +10,7 @@ import time
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, DBSCAN
 import joblib
 
 warnings.filterwarnings("ignore")
@@ -57,15 +57,35 @@ def character():
     df['employed_age_ratio'] = df.apply(lambda x: x['DAYS_EMPLOYED'] / x['DAYS_BIRTH'], axis=1)
     df['credit_goods_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_GOODS_PRICE'], axis=1)
 
+    """section = df[['AMT_GOODS_PRICE', 'AMT_ANNUITY']]
+    # 聚类读取
+    model = joblib.load('kmeans.txt')
+    clusion = model.predict(section)
+    df['clusion'] = clusion"""
+
+    # 聚类
+    section = df[["FLAG_DOCUMENT_2", "FLAG_DOCUMENT_4", "FLAG_DOCUMENT_7", "FLAG_DOCUMENT_10", "FLAG_DOCUMENT_12",
+                  "FLAG_DOCUMENT_17", "FLAG_DOCUMENT_19", "FLAG_DOCUMENT_20"]]
+    #  DBSCAN(eps=0.5, min_samples=5, metric_params=None, leaf_size=30, p=None, n_jobs=1)
+    k = 12  # 定义聚类的类别中心个数，即聚成4类
+    iteration = 5000  # 计算聚类中心的最大循环次数
+    model = KMeans(n_clusters=k, max_iter=iteration)
+    model.fit(section)
+    joblib.dump(model, "kmeans.txt")
+    clusion = model.predict(section)
+    df['clusion'] = clusion
+    df = df.drop(["FLAG_DOCUMENT_2", "FLAG_DOCUMENT_4", "FLAG_DOCUMENT_7", "FLAG_DOCUMENT_10", "FLAG_DOCUMENT_12",
+                  "FLAG_DOCUMENT_17", "FLAG_DOCUMENT_19", "FLAG_DOCUMENT_20"], axis=1)
+
     # 相关系数计算
-    all_correlations = df.corr(method='pearson')
+    # all_correlations = df.corr(method='pearson')
     # 绘制热力图
     """plt.figure(figsize=(16, 12), dpi=80)
     sns.heatmap(data=correlations, annot=False, center=0)
     plt.show()"""
 
     # 查找标签与TARGET相关性
-    target_orrelations = (abs(all_correlations['TARGET']).sort_values(ascending=True))
+    # target_orrelations = (abs(all_correlations['TARGET']).sort_values(ascending=True))
     # print(target_orrelations)
 
     """
@@ -73,12 +93,12 @@ def character():
         for i in target_orrelations.items():
         if i[1] <= 0.005:  # 删除与TARGET相关性低于0.005的标签
             df.drop([i[0]], axis=1, inplace=True)"""
-    # 按个数删除标签
+    """# 按个数删除标签
     count = 0
     for i in target_orrelations.items():
         count = count + 1
         if count < 0:  # 删除与TARGET相关性低的30个标签10
-            df.drop(i[0], axis=1, inplace=True)
+            df.drop(i[0], axis=1, inplace=True)"""
 
     # df.to_csv('C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv', index=False)
 
@@ -104,8 +124,8 @@ def lightgbm(df):
         'subsample_for_bin': 240000,
         'reg_alpha': 0.44,
         'reg_lambda': 0.48,
-        'colsample_bytree': 0.48888,
-        'min_split_gain': 0.024766,
+        'colsample_bytree': 0.4888,
+        'min_split_gain':  0.03023,
         'subsample': 1,
         'is_unbalance': False,
         'verbose': -1
@@ -130,7 +150,7 @@ def lightgbm(df):
         'feature_name': feature_name, 'importance': importance})
     feature_importance.sort_values(by=['importance'], ascending=False, inplace=True)
     # print(feature_importance)
-    # feature_importance.to_csv('feature_importance.csv', index=False)
+    feature_importance.to_csv('feature_importance.csv', index=False)
 
     # 删除低分特征并重新训练
     # for i in range(len(feature_importance)):

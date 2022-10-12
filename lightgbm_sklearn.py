@@ -49,28 +49,29 @@ def character():
     # print(df.isnull().sum().sort_values())
 
     # 对原有数据集特征进行运算，得到新特征
-    df['cerdit_annuity_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_ANNUITY'], axis=1)
+    """df['cerdit_annuity_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_ANNUITY'], axis=1)
     df['prices_income_ratio'] = df.apply(lambda x: x['AMT_GOODS_PRICE'] / x['AMT_INCOME_TOTAL'], axis=1)
     df['employed_age_ratio'] = df.apply(lambda x: x['DAYS_EMPLOYED'] / x['DAYS_BIRTH'], axis=1)
-    df['credit_goods_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_GOODS_PRICE'], axis=1)
+    df['credit_goods_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_GOODS_PRICE'], axis=1)"""
 
-    section = df[['AMT_GOODS_PRICE', 'AMT_ANNUITY']]
-    k = 10  # 定义聚类的类别中心个数，即聚成4类
+    """section = df[['AMT_GOODS_PRICE', 'AMT_ANNUITY']]
+    k = 20  # 定义聚类的类别中心个数，即聚成4类
     iteration = 500  # 计算聚类中心的最大循环次数
     model = KMeans(n_clusters=k, max_iter=iteration)
     model.fit(section)
+    joblib.dump(model, "kmeans.txt")
     clusion = model.predict(section)
-    df['clusion'] = clusion
+    df['clusion'] = clusion"""
 
     # 相关系数计算
-    all_correlations = df.corr(method='pearson')
+    # all_correlations = df.corr(method='pearson')
     # 绘制热力图
     """plt.figure(figsize=(16, 12), dpi=80)
     sns.heatmap(data=correlations, annot=False, center=0)
     plt.show()"""
 
     # 查找标签与TARGET相关性
-    target_orrelations = (abs(all_correlations['TARGET']).sort_values(ascending=True))
+    # target_orrelations = (abs(all_correlations['TARGET']).sort_values(ascending=True))
     # print(target_orrelations)
 
     """
@@ -79,11 +80,11 @@ def character():
         if i[1] <= 0.005:  # 删除与TARGET相关性低于0.005的标签
             df.drop([i[0]], axis=1, inplace=True)"""
     # 按个数删除标签
-    count = 0
+    """count = 0
     for i in target_orrelations.items():
         count = count + 1
         if count < 0:  # 删除与TARGET相关性低的30个标签10
-            df.drop(i[0], axis=1, inplace=True)
+            df.drop(i[0], axis=1, inplace=True)"""
 
     # df.to_csv('C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv', index=False)
     return df
@@ -105,17 +106,17 @@ def lightgbm(df):
                              num_leaves=50,
                              learning_rate=0.00545,
                              subsample_for_bin=240000,
-                             colsample_bytree=0.488,
+                             colsample_bytree=0.4888,
                              reg_alpha=0.44,
                              reg_lambda=0.48,
-                             min_split_gain=0.024766,
+                             min_split_gain=0.03023,
                              subsample=1,
                              is_unbalance=False,
                              n_estimators=5000,
                              )
 
     """parameters = {
-            'colsample_bytree': np.linspace(0.48,0.53,num = 50),
+            'subsample_for_bin': range(220000,245000,1000),
     }
 
     gsearch = GridSearchCV(gbm, param_grid=parameters, scoring='roc_auc', cv=3,n_jobs = -1)
