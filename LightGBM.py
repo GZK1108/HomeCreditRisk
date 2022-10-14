@@ -40,14 +40,17 @@ def character():
 
     # 使用LabelEncoder
 
+    # 归一化
+    # minmax = preprocessing.MinMaxScaler()
+
     # 缺失值处理+编码
     for col in df:
         if df[col].dtype == 'object':
             df[col].fillna(df[col].mode()[0], inplace=True)  # 使用众数填充标称型
             df[[col]] = df[[col]].apply(LabelEncoder().fit_transform)
         else:
-            # df[col].fillna(round(df[col].mean()), inplace=True)
-            df[col].fillna(0, inplace=True)  # 使用中位数填充数值型median
+            df[col].fillna(round(df[col].mean()), inplace=True)
+            # df[col].fillna(0, inplace=True)  # 使用中位数填充数值型median
 
     # print(df.isnull().sum().sort_values())
 
@@ -56,26 +59,28 @@ def character():
     df['prices_income_ratio'] = df.apply(lambda x: x['AMT_GOODS_PRICE'] / x['AMT_INCOME_TOTAL'], axis=1)
     df['employed_age_ratio'] = df.apply(lambda x: x['DAYS_EMPLOYED'] / x['DAYS_BIRTH'], axis=1)
     df['credit_goods_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_GOODS_PRICE'], axis=1)
+    df['ext_source'] = df.apply(lambda x: x['EXT_SOURCE_3'] + x['EXT_SOURCE_2'] + x['EXT_SOURCE_1'], axis=1)
 
-    """section = df[['AMT_GOODS_PRICE', 'AMT_ANNUITY']]
+    # 归一化
+    """for col in df:
+        df[[col]] = minmax.fit_transform(df[[col]])"""
+
+    section = df[["cerdit_annuity_ratio", "EXT_SOURCE_3", "EXT_SOURCE_2", "EXT_SOURCE_1", "ext_source"]]
     # 聚类读取
     model = joblib.load('kmeans.txt')
     clusion = model.predict(section)
-    df['clusion'] = clusion"""
+    df['classfication'] = clusion
 
     # 聚类
-    section = df[["FLAG_DOCUMENT_2", "FLAG_DOCUMENT_4", "FLAG_DOCUMENT_7", "FLAG_DOCUMENT_10", "FLAG_DOCUMENT_12",
-                  "FLAG_DOCUMENT_17", "FLAG_DOCUMENT_19", "FLAG_DOCUMENT_20"]]
+    """section = df[["cerdit_annuity_ratio", "EXT_SOURCE_3", "EXT_SOURCE_2", "EXT_SOURCE_1", "ext_source"]]
     #  DBSCAN(eps=0.5, min_samples=5, metric_params=None, leaf_size=30, p=None, n_jobs=1)
-    k = 12  # 定义聚类的类别中心个数，即聚成4类
-    iteration = 5000  # 计算聚类中心的最大循环次数
+    k = 10  # 定义聚类的类别中心个数，即聚成4类
+    iteration = 500  # 计算聚类中心的最大循环次数
     model = KMeans(n_clusters=k, max_iter=iteration)
     model.fit(section)
     joblib.dump(model, "kmeans.txt")
     clusion = model.predict(section)
-    df['clusion'] = clusion
-    df = df.drop(["FLAG_DOCUMENT_2", "FLAG_DOCUMENT_4", "FLAG_DOCUMENT_7", "FLAG_DOCUMENT_10", "FLAG_DOCUMENT_12",
-                  "FLAG_DOCUMENT_17", "FLAG_DOCUMENT_19", "FLAG_DOCUMENT_20"], axis=1)
+    df['classification'] = clusion"""
 
     # 相关系数计算
     # all_correlations = df.corr(method='pearson')
@@ -127,7 +132,7 @@ def lightgbm(df):
         'colsample_bytree': 0.4888,
         'min_split_gain':  0.03023,
         'subsample': 1,
-        'is_unbalance': False,
+        'is_unbalance': True,
         'verbose': -1
     }
 
@@ -139,7 +144,8 @@ def lightgbm(df):
 
     # 输出特征重要性
 
-    # plot_importance(gbm, max_num_features=20, importance_type='gain')
+    plt.figure(figsize=(16, 8), dpi=100)
+    plot_importance(gbm, max_num_features=30, importance_type='gain')
     # plt.show()
 
     # 保存重要特征
@@ -150,7 +156,7 @@ def lightgbm(df):
         'feature_name': feature_name, 'importance': importance})
     feature_importance.sort_values(by=['importance'], ascending=False, inplace=True)
     # print(feature_importance)
-    feature_importance.to_csv('feature_importance.csv', index=False)
+    # feature_importance.to_csv('feature_importance.csv', index=False)
 
     # 删除低分特征并重新训练
     # for i in range(len(feature_importance)):
@@ -172,7 +178,7 @@ def lightgbm(df):
 if __name__ == '__main__':
     time_start = time.time()
     temp = character()
-    lightgbm(temp)
+    # lightgbm(temp)
     time_end = time.time()
     time_sum = time_end - time_start
     print("运行时间:")

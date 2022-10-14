@@ -35,8 +35,14 @@ def character():
     # 输出当前数据集标签类型
     # print(df.dtypes.value_counts())
 
+    # 统计类别个数
+    print(df['TARGET'].value_counts())
+
     # 查找类型为非数值型标签
     df.select_dtypes('object').apply(pd.Series.nunique, axis=0)
+
+    # 归一化
+    minmax = preprocessing.MaxAbsScaler()
 
     # 缺失值处理+编码
     for col in df:
@@ -44,15 +50,16 @@ def character():
             df[col].fillna(df[col].mode()[0], inplace=True)  # 使用众数填充标称型
             df[[col]] = df[[col]].apply(LabelEncoder().fit_transform)
         else:
-            # df[col].fillna(round(df[col].mean()), inplace=True)
-            df[col].fillna(0, inplace=True)  # 使用中位数填充数值型median
+            df[col].fillna(round(df[col].mean()), inplace=True)
+            # df[col].fillna(0, inplace=True)  # 使用中位数填充数值型median
+            df[[col]] = minmax.fit_transform(df[[col]])
     # print(df.isnull().sum().sort_values())
 
     # 对原有数据集特征进行运算，得到新特征
-    """df['cerdit_annuity_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_ANNUITY'], axis=1)
+    df['cerdit_annuity_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_ANNUITY'], axis=1)
     df['prices_income_ratio'] = df.apply(lambda x: x['AMT_GOODS_PRICE'] / x['AMT_INCOME_TOTAL'], axis=1)
     df['employed_age_ratio'] = df.apply(lambda x: x['DAYS_EMPLOYED'] / x['DAYS_BIRTH'], axis=1)
-    df['credit_goods_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_GOODS_PRICE'], axis=1)"""
+    df['credit_goods_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_GOODS_PRICE'], axis=1)
 
     """section = df[['AMT_GOODS_PRICE', 'AMT_ANNUITY']]
     k = 20  # 定义聚类的类别中心个数，即聚成4类
@@ -111,12 +118,12 @@ def lightgbm(df):
                              reg_lambda=0.48,
                              min_split_gain=0.03023,
                              subsample=1,
-                             is_unbalance=False,
+                             is_unbalance=True,
                              n_estimators=5000,
                              )
 
     """parameters = {
-            'subsample_for_bin': range(220000,245000,1000),
+            'learning_rate': np.arange(0.005, 0.0058, 0.0001),
     }
 
     gsearch = GridSearchCV(gbm, param_grid=parameters, scoring='roc_auc', cv=3,n_jobs = -1)
@@ -135,6 +142,14 @@ def lightgbm(df):
     y_pred = model.predict(x_test)
     preds = model.predict_proba(x_test)[:, 1]
     fpr1, tpr1, thresholds1 = roc_curve(y_test, preds, pos_label=1)  # pos_label=1
+
+    print("准确度为：")
+    print(accuracy_score(y_test, y_pred, normalize=True, sample_weight=None))
+    print("精确度为:")
+    print(precision_score(y_test, y_pred, average='binary'))  # 测试集精确率
+    print("召回率为:")
+    print(recall_score(y_test, y_pred, average="binary"))
+
     print("AUC为:", auc(fpr1, tpr1))
 
     plt.title("lightgbm")
