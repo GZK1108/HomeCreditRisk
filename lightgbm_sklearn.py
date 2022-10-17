@@ -60,6 +60,13 @@ def character():
     df['prices_income_ratio'] = df.apply(lambda x: x['AMT_GOODS_PRICE'] / x['AMT_INCOME_TOTAL'], axis=1)
     df['employed_age_ratio'] = df.apply(lambda x: x['DAYS_EMPLOYED'] / x['DAYS_BIRTH'], axis=1)
     df['credit_goods_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_GOODS_PRICE'], axis=1)
+    df['ext_source'] = df.apply(lambda x: x['EXT_SOURCE_3'] + x['EXT_SOURCE_2'] + x['EXT_SOURCE_1'], axis=1)
+
+    section = df[["cerdit_annuity_ratio", "EXT_SOURCE_3", "EXT_SOURCE_2", "EXT_SOURCE_1", "ext_source"]]
+    # 聚类读取
+    model = joblib.load('kmeans.txt')
+    clusion = model.predict(section)
+    df['classfication'] = clusion
 
     """section = df[['AMT_GOODS_PRICE', 'AMT_ANNUITY']]
     k = 20  # 定义聚类的类别中心个数，即聚成4类
@@ -156,7 +163,7 @@ def lightgbm(df):
     plt.plot(fpr1, tpr1, label='ROC')
     plt.xlabel('FPR')
     plt.ylabel('TPR')
-    # plt.show()
+    plt.show()
 
 
 if __name__ == '__main__':

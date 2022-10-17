@@ -11,7 +11,7 @@ from sklearn.preprocessing import LabelEncoder
 from collections import Counter
 from imblearn.over_sampling import ADASYN
 import joblib
-
+from xgboost import XGBClassifier
 warnings.filterwarnings("ignore")
 
 
@@ -64,67 +64,54 @@ def character():
     model = joblib.load('kmeans.txt')
     clusion = model.predict(section)
     df['classfication'] = clusion
-    df = df['EXT_SOURCE_3',
-            'EXT_SOURCE_2',
-            'EXT_SOURCE_1',
-            'DAYS_BIRTH',
-            'AMT_GOODS_PRICE',
-            'AMT_CREDIT',
-            'DAYS_EMPLOYED',
-            'AMT_ANNUITY',
-            'DAYS_ID_PUBLISH',
-            'DAYS_LAST_PHONE_CHANGE',
-            'NAME_EDUCATION_TYPE',
-            'DAYS_REGISTRATION',
-            'CODE_GENDER',
-            'OWN_CAR_AGE',
-            'AMT_INCOME_TOTAL',
-            'REGION_POPULATION_RELATIVE',
-            'ORGANIZATION_TYPE',
-            'HOUR_APPR_PROCESS_START',
-            'AMT_REQ_CREDIT_BUREAU_YEAR',
-            'NAME_CONTRACT_TYPE']
 
     # df.to_csv('C:/Users/11453/PycharmProjects/riskassessment/data/creditrisk/creditdata.csv', index=False)
     return df
 
 
-def anasyn(df):
-    X = df.iloc[:, 1:]  # X为解释变量集
-    y = df.iloc[:, 0]  # y为结果集
-    print('Original dataset shape %s' % Counter(y))
 
-    ada = ADASYN(sampling_strategy='auto', random_state=42)  # 42 Control the randomization of the algorithm.
-    x_res, y_res = ada.fit_resample(X, y)
-    print('Resampled dataset shape %s' % Counter(y_res))
-    return x_res, y_res
-
-
-def logsti(x, y):
-    x_train, x_test, y_train, y_test = train_test_split(x, y, random_state=42, test_size=0.2)
+def xgb(df):
+    y = df.iloc[:, 0]
+    x = df.iloc[:, 1:]
+    train_x, test_x, train_y, test_y = train_test_split(x, y, random_state=42, test_size=0.2)
     # train_x = train_x.values
 
-    model = linear_model.LogisticRegression(multi_class='multinomial', solver='lbfgs')
-    model.fit(x_train, y_train)
-    joblib.dump(model, "logistic.txt")
-    acu_train = model.score(x_train, y_train)
-    acu_test = model.score(x_test, y_test)
-    target_pred = model.predict(x_test)
-    recall = recall_score(y_test, target_pred, average="binary")
+    model = XGBClassifier(scale_pos_weight=11,  # ;在各类别样本十分不平衡时，把这个参数设定为一个正值，可以使算法更快收敛。默认1
+                          learning_rate=0.0545,  # 学习效率
+                          n_estimators=5000,
+                          max_depth=6,  # 树深度
+                          gamma=0.18,  # 节点分类所需的最小损失函数下降值
+                          subsample=1,  # 控制每棵树的随机采样比例
+                          colsample_bytree=0.4888,  # 特征随机采样比例
+                          objective='binary:logistic', # 二分类的逻辑回归问题，返回预测的概率
+                          eval_metric='auc',
+                          reg_alpha=0.44,
+                          reg_lambda=0.48,
+                          seed=27)
+    model.fit(train_x, train_y)
+    # pickle.dump(model, open("xgb.pickle.dat", "wb"))
+    # 载入模型并保存
 
-    print(acu_train)  # 训练集正确率
-    print("Logisic的正确率,精确率,召回率分别为:")
-    print(acu_test)  # 测试集正确率
-    print(precision_score(y_test, target_pred, average='macro'))  # 测试集精确率
-    print(recall)  # 召回率
+    # loaded_model = pickle.load(open("xgb.pickle.dat", "rb"))
 
-    # svm roc
-    fpr, tpr, thresholds = roc_curve(y_test, model.decision_function(x_test))
-    print("logistic的auc为:")
-    print(auc(fpr, tpr))
-    # plt.subplot(1,2,1)
-    plt.plot(fpr, tpr, label='ROC')
-    plt.title("svm")
+    Y_pred = model.predict(test_x)
+    preds = model.predict_proba(test_x)[:, 1]
+
+    print('y-pred', Y_pred)
+
+    print("准确度为：")
+    print(accuracy_score(test_y, Y_pred, normalize=True, sample_weight=None))
+    print("精确度为:")
+    print(precision_score(test_y, Y_pred, average='binary'))  # 测试集精确率
+    print("召回率为:")
+    print(recall_score(test_y, Y_pred, average="binary"))
+
+    fpr1, tpr1, thresholds1 = roc_curve(test_y, preds, pos_label=1)  # pos_label=1
+    print("AUC为:")
+    print(auc(fpr1, tpr1))
+
+    plt.title("Xgboost")
+    plt.plot(fpr1, tpr1, label='ROC')
     plt.xlabel('FPR')
     plt.ylabel('TPR')
     plt.show()
@@ -133,8 +120,7 @@ def logsti(x, y):
 if __name__ == '__main__':
     time_start = time.time()
     temp = character()
-    x, y = anasyn(temp)
-    logsti(x, y)
+    xgb(temp)
     time_end = time.time()
     time_sum = time_end - time_start
     print("运行时间:")

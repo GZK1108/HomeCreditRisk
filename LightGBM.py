@@ -54,6 +54,13 @@ def character():
 
     # print(df.isnull().sum().sort_values())
 
+    # 相关系数计算
+    all_correlations = df.corr(method='pearson')
+    # 绘制热力图
+    """plt.figure(figsize=(16, 12), dpi=80)
+    sns.heatmap(data=all_correlations, annot=False, center=0)"""
+    # plt.show()
+
     # 对原有数据集特征进行运算，得到新特征
     df['cerdit_annuity_ratio'] = df.apply(lambda x: x['AMT_CREDIT'] / x['AMT_ANNUITY'], axis=1)
     df['prices_income_ratio'] = df.apply(lambda x: x['AMT_GOODS_PRICE'] / x['AMT_INCOME_TOTAL'], axis=1)
@@ -82,12 +89,7 @@ def character():
     clusion = model.predict(section)
     df['classification'] = clusion"""
 
-    # 相关系数计算
-    # all_correlations = df.corr(method='pearson')
-    # 绘制热力图
-    """plt.figure(figsize=(16, 12), dpi=80)
-    sns.heatmap(data=correlations, annot=False, center=0)
-    plt.show()"""
+
 
     # 查找标签与TARGET相关性
     # target_orrelations = (abs(all_correlations['TARGET']).sort_values(ascending=True))
@@ -144,8 +146,8 @@ def lightgbm(df):
 
     # 输出特征重要性
 
-    plt.figure(figsize=(16, 8), dpi=100)
-    plot_importance(gbm, max_num_features=30, importance_type='gain')
+    """plt.figure(figsize=(16, 8), dpi=100)
+    plot_importance(gbm, max_num_features=30, importance_type='gain')"""
     # plt.show()
 
     # 保存重要特征
@@ -172,13 +174,13 @@ def lightgbm(df):
     plt.plot(fpr1, tpr1, label='ROC')
     plt.xlabel('FPR')
     plt.ylabel('TPR')
-    # plt.show()
+    plt.show()
 
 
 if __name__ == '__main__':
     time_start = time.time()
     temp = character()
-    # lightgbm(temp)
+    lightgbm(temp)
     time_end = time.time()
     time_sum = time_end - time_start
     print("运行时间:")
