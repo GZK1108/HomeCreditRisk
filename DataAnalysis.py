@@ -31,10 +31,15 @@ df2 = df[['TARGET','APARTMENTS_AVG', 'BASEMENTAREA_AVG', 'YEARS_BEGINEXPLUATATIO
           'WALLSMATERIAL_MODE', 'EMERGENCYSTATE_MODE'
           ]]
 
-df3 = df[['TARGET','EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'FLAG_DOCUMENT_2', 'FLAG_DOCUMENT_3', 'FLAG_DOCUMENT_4',
-          'FLAG_DOCUMENT_5', 'FLAG_DOCUMENT_6', 'FLAG_DOCUMENT_7', 'FLAG_DOCUMENT_8', 'FLAG_DOCUMENT_9',
-          'FLAG_DOCUMENT_10', 'FLAG_DOCUMENT_11', 'FLAG_DOCUMENT_12', 'FLAG_DOCUMENT_13', 'FLAG_DOCUMENT_14',
-          'FLAG_DOCUMENT_15', 'FLAG_DOCUMENT_16', 'FLAG_DOCUMENT_17', 'FLAG_DOCUMENT_18', 'FLAG_DOCUMENT_19',
+df2 = df2.drop(['LANDAREA_AVG', 'LIVINGAPARTMENTS_AVG',
+          'LIVINGAREA_AVG', 'NONLIVINGAPARTMENTS_AVG', 'NONLIVINGAREA_AVG', 'LANDAREA_MODE', 'LIVINGAPARTMENTS_MODE', 'LIVINGAREA_MODE',
+          'NONLIVINGAPARTMENTS_MODE', 'NONLIVINGAREA_MODE',  'LANDAREA_MEDI', 'LIVINGAPARTMENTS_MEDI', 'LIVINGAREA_MEDI',
+          'NONLIVINGAPARTMENTS_MEDI', 'NONLIVINGAREA_MEDI', 'FONDKAPREMONT_MODE', 'HOUSETYPE_MODE', 'TOTALAREA_MODE',
+          'WALLSMATERIAL_MODE', 'EMERGENCYSTATE_MODE'],axis=1)
+
+df3 = df[['TARGET','EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'FLAG_DOCUMENT_2', 'FLAG_DOCUMENT_3',
+          'FLAG_DOCUMENT_5', 'FLAG_DOCUMENT_6',  'FLAG_DOCUMENT_8', 'FLAG_DOCUMENT_9',
+          'FLAG_DOCUMENT_10', 'FLAG_DOCUMENT_17', 'FLAG_DOCUMENT_18', 'FLAG_DOCUMENT_19',
           'FLAG_DOCUMENT_20', 'FLAG_DOCUMENT_21', 'FLAG_OWN_CAR', 'FLAG_OWN_REALTY', 'FLAG_MOBIL',
           'FLAG_EMP_PHONE', 'FLAG_WORK_PHONE', 'FLAG_CONT_MOBILE', 'FLAG_PHONE', 'FLAG_EMAIL',
           'REG_REGION_NOT_LIVE_REGION', 'REG_REGION_NOT_WORK_REGION',
@@ -90,13 +95,17 @@ mask = np.zeros_like(df1_correlations, dtype=np.bool)
 mask[np.triu_indices_from(mask)] = True
 sns.heatmap(data=df1_correlations, annot=True, center=0, mask=mask, fmt='.2f', cmap='GnBu',linewidths=0.1)
 plt.show()"""
+"""plt.figure(figsize=(18, 12), dpi=80)
+mask = np.zeros_like(df2_correlations, dtype=np.bool)
+mask[np.triu_indices_from(mask)] = True
+sns.heatmap(data=df2_correlations, annot=False, cmap='YlGnBu',mask=mask)
+plt.show()"""
 plt.figure(figsize=(18, 12), dpi=80)
-sns.heatmap(data=df2_correlations, annot=False, cmap='YlGnBu')
+mask = np.zeros_like(df3_correlations, dtype=np.bool)
+mask[np.triu_indices_from(mask)] = True
+sns.heatmap(data=df3_correlations, annot=False, cmap='YlGnBu',mask=mask,center=0)
 plt.show()
 """plt.figure(figsize=(18, 12), dpi=80)
-sns.heatmap(data=df3_correlations, annot=False, center=0)
-plt.show()
-plt.figure(figsize=(18, 12), dpi=80)
 mask = np.zeros_like(df4_correlations, dtype=np.bool)
 mask[np.triu_indices_from(mask)] = True
 sns.heatmap(data=df4_correlations, annot=True, center=0, mask=mask, fmt='.2f', cmap='GnBu',linewidths=0.1)
